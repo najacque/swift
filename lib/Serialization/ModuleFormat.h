@@ -368,7 +368,7 @@ enum class SelfAccessKind : uint8_t {
   Consuming,
 };
 using SelfAccessKindField = BCFixed<2>;
-  
+
 /// Translates an operator DeclKind to a Serialization fixity, whose values are
 /// guaranteed to be stable.
 static inline OperatorKind getStableFixity(DeclKind kind) {
@@ -930,19 +930,19 @@ namespace decls_block {
     OPENED_ARCHETYPE_TYPE,
     TypeIDField         // the existential type
   >;
-  
+
   using OpaqueArchetypeTypeLayout = BCRecordLayout<
     OPAQUE_ARCHETYPE_TYPE,
     DeclIDField,           // the opaque type decl
     SubstitutionMapIDField // the arguments
   >;
-  
+
   using NestedArchetypeTypeLayout = BCRecordLayout<
     NESTED_ARCHETYPE_TYPE,
     TypeIDField, // root archetype
     TypeIDField // interface type relative to root
   >;
-  
+
   using DynamicSelfTypeLayout = BCRecordLayout<
     DYNAMIC_SELF_TYPE,
     TypeIDField          // self type
@@ -992,7 +992,7 @@ namespace decls_block {
                            // followed by error result type/convention
     // Optionally a protocol conformance (for witness_methods)
   >;
-  
+
   using SILBlockStorageTypeLayout = BCRecordLayout<
     SIL_BLOCK_STORAGE_TYPE,
     TypeIDField            // capture type
@@ -1236,7 +1236,7 @@ namespace decls_block {
     // - the foreign error convention, if any
     // - inlinable body text, if any
   >;
-  
+
   using OpaqueTypeLayout = BCRecordLayout<
     OPAQUE_TYPE_DECL,
     DeclContextIDField, // decl context
@@ -1574,7 +1574,7 @@ namespace decls_block {
     BCFixed<1>,        // restrict to protocol extension
     BCFixed<1>         // imported from Clang?
   >;
-  
+
   using XRefOpaqueReturnTypePathPieceLayout = BCRecordLayout<
     XREF_OPAQUE_RETURN_TYPE_PATH_PIECE,
     IdentifierIDField // mangled name of defining decl
@@ -1630,13 +1630,13 @@ namespace decls_block {
     BCBlob      // _silgen_name
   >;
 
-  
+
   using AlignmentDeclAttrLayout = BCRecordLayout<
     Alignment_DECL_ATTR,
     BCFixed<1>, // implicit flag
     BCVBR<8>    // alignment
   >;
-  
+
   using SwiftNativeObjCRuntimeBaseDeclAttrLayout = BCRecordLayout<
     SwiftNativeObjCRuntimeBase_DECL_ATTR,
     BCFixed<1>, // implicit flag
@@ -1738,6 +1738,14 @@ namespace decls_block {
     BCBlob      // platform, followed by message
   >;
 
+  using OriginallyDefinedInDeclAttrLayout = BCRecordLayout<
+    OriginallyDefinedIn_DECL_ATTR,
+    BCFixed<1>,     // implicit flag
+    BC_AVAIL_TUPLE, // moved OS version
+    BCVBR<5>,       // platform
+    BCBlob          // original module name
+  >;
+
   using ObjCDeclAttrLayout = BCRecordLayout<
     ObjC_DECL_ATTR,
     BCFixed<1>, // implicit flag
@@ -1777,7 +1785,7 @@ namespace decls_block {
 
   // TODO(TF-999): Remove deprecated `@differentiating` attribute.
   using DifferentiatingDeclAttrLayout = DerivativeDeclAttrLayout;
-  
+
   // SWIFT_ENABLE_TENSORFLOW
   using TransposeDeclAttrLayout = BCRecordLayout<
     Transpose_DECL_ATTR,
@@ -1899,7 +1907,7 @@ namespace index_block {
     SUBSTITUTION_MAP_OFFSETS,
     LastRecordKind = SUBSTITUTION_MAP_OFFSETS,
   };
-  
+
   constexpr const unsigned RecordIDFieldWidth = 5;
   static_assert(LastRecordKind < (1 << RecordIDFieldWidth),
                 "not enough bits for all record kinds");

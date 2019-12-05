@@ -360,8 +360,7 @@ static void printShortFormAvailable(ArrayRef<const DeclAttribute *> Attrs,
 }
 
 // Returns the differentiation parameters clause string for the given function,
-// parameter indices, and parsed parameters. Use the parameter indices if
-// specified; otherwise, use the parsed parameters.
+// parameter indices, and parsed parameters.
 static std::string getDifferentiationParametersClauseString(
     const AbstractFunctionDecl *function, IndexSubset *paramIndices,
     ArrayRef<ParsedAutoDiffParameter> parsedParams) {
@@ -428,7 +427,7 @@ static std::string getTransposedParametersClauseString(
     ArrayRef<ParsedAutoDiffParameter> parsedParams) {
   assert(function);
   bool isInstanceMethod = function->isInstanceMember();
-  
+
   std::string result;
   llvm::raw_string_ostream printer(result);
 
@@ -761,6 +760,17 @@ bool DeclAttribute::printImpl(ASTPrinter &Printer, const PrintOptions &Options,
     Printer << "(\"" << cast<SILGenNameAttr>(this)->Name << "\")";
     break;
 
+  case DAK_OriginallyDefinedIn: {
+    Printer.printAttrName("@_originallyDefinedIn");
+    Printer << "(module: ";
+    auto Attr = cast<OriginallyDefinedInAttr>(this);
+    Printer << "\"" << Attr->OriginalModuleName << "\", ";
+    Printer << platformString(Attr->Platform) << " " <<
+      Attr->MovedVersion.getAsString();
+    Printer << ")";
+    break;
+  }
+
   case DAK_Available: {
     Printer.printAttrName("@available");
     Printer << "(";
@@ -821,7 +831,7 @@ bool DeclAttribute::printImpl(ASTPrinter &Printer, const PrintOptions &Options,
     Printer << cast<PrivateImportAttr>(this)->getSourceFile() << "\")";
     break;
   }
-    
+
   case DAK_SwiftNativeObjCRuntimeBase: {
     auto *attr = cast<SwiftNativeObjCRuntimeBaseAttr>(this);
     Printer.printAttrName("@_swift_native_objc_runtime_base");
@@ -1105,6 +1115,8 @@ StringRef DeclAttribute::getAttrName() const {
     return "_projectedValueProperty";
   case DAK_Differentiable:
     return "differentiable";
+  case DAK_OriginallyDefinedIn:
+    return "_originallyDefinedIn";
   // SWIFT_ENABLE_TENSORFLOW
   case DAK_Derivative:
     return "derivative";
@@ -1159,8 +1171,8 @@ ObjCAttr *ObjCAttr::createUnnamedImplicit(ASTContext &Ctx) {
   return new (Ctx) ObjCAttr(None, false);
 }
 
-ObjCAttr *ObjCAttr::createNullary(ASTContext &Ctx, SourceLoc AtLoc, 
-                                  SourceLoc ObjCLoc, SourceLoc LParenLoc, 
+ObjCAttr *ObjCAttr::createNullary(ASTContext &Ctx, SourceLoc AtLoc,
+                                  SourceLoc ObjCLoc, SourceLoc LParenLoc,
                                   SourceLoc NameLoc, Identifier Name,
                                   SourceLoc RParenLoc) {
   void *mem = Ctx.Allocate(totalSizeToAlloc<SourceLoc>(3), alignof(ObjCAttr));
@@ -1175,8 +1187,8 @@ ObjCAttr *ObjCAttr::createNullary(ASTContext &Ctx, Identifier Name,
   return new (Ctx) ObjCAttr(ObjCSelector(Ctx, 0, Name), isNameImplicit);
 }
 
-ObjCAttr *ObjCAttr::createSelector(ASTContext &Ctx, SourceLoc AtLoc, 
-                                   SourceLoc ObjCLoc, SourceLoc LParenLoc, 
+ObjCAttr *ObjCAttr::createSelector(ASTContext &Ctx, SourceLoc AtLoc,
+                                   SourceLoc ObjCLoc, SourceLoc LParenLoc,
                                    ArrayRef<SourceLoc> NameLocs,
                                    ArrayRef<Identifier> Names,
                                    SourceLoc RParenLoc) {
@@ -1189,10 +1201,10 @@ ObjCAttr *ObjCAttr::createSelector(ASTContext &Ctx, SourceLoc AtLoc,
                             NameLocs);
 }
 
-ObjCAttr *ObjCAttr::createSelector(ASTContext &Ctx, 
+ObjCAttr *ObjCAttr::createSelector(ASTContext &Ctx,
                                    ArrayRef<Identifier> Names,
                                    bool isNameImplicit) {
-  return new (Ctx) ObjCAttr(ObjCSelector(Ctx, Names.size(), Names), 
+  return new (Ctx) ObjCAttr(ObjCSelector(Ctx, Names.size(), Names),
                             isNameImplicit);
 }
 

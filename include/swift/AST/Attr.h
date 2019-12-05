@@ -67,14 +67,14 @@ public:
   SourceLoc AtLoc;
   Optional<StringRef> convention = None;
   Optional<StringRef> conventionWitnessMethodProtocol = None;
-  
+
   // Indicates whether the type's '@differentiable' attribute has a 'linear'
   // argument.
   bool linear = false;
 
   // For an opened existential type, the known ID.
   Optional<UUID> OpenedID;
-  
+
   // For a reference to an opaque return type, the mangled name and argument
   // index into the generic signature.
   struct OpaqueReturnTypeRef {
@@ -84,7 +84,7 @@ public:
   Optional<OpaqueReturnTypeRef> OpaqueReturnTypeOf;
 
   TypeAttributes() {}
-  
+
   bool isValid() const { return AtLoc.isValid(); }
 
   bool isLinear() const {
@@ -98,19 +98,19 @@ public:
   void clearAttribute(TypeAttrKind A) {
     AttrLocs[A] = SourceLoc();
   }
-  
+
   bool has(TypeAttrKind A) const {
     return getLoc(A).isValid();
   }
-  
+
   SourceLoc getLoc(TypeAttrKind A) const {
     return AttrLocs[A];
   }
-  
+
   void setOpaqueReturnTypeOf(StringRef mangling, unsigned index) {
     OpaqueReturnTypeOf = OpaqueReturnTypeRef{mangling, index};
   }
-  
+
   void setAttr(TypeAttrKind A, SourceLoc L) {
     assert(!L.isInvalid() && "Cannot clear attribute with this method");
     AttrLocs[A] = L;
@@ -131,10 +131,10 @@ public:
     for (SourceLoc elt : AttrLocs)
       if (elt.isValid())
         return false;
-    
+
     return true;
   }
-  
+
   bool hasConvention() const { return convention.hasValue(); }
   StringRef getConvention() const { return *convention; }
 
@@ -147,7 +147,7 @@ public:
 #include "swift/AST/ReferenceStorage.def"
     return ReferenceOwnership::Strong;
   }
-  
+
   void clearOwnership() {
 #define REF_STORAGE(Name, name, ...) \
     clearAttribute(TAK_sil_##name);
@@ -359,7 +359,7 @@ public:
 
     /// True if this shouldn't be serialized.
     NotSerialized = 1ull << (unsigned(DeclKindIndex::Last_Decl) + 4),
-    
+
     /// True if this attribute is only valid when parsing a .sil file.
     SILOnly = 1ull << (unsigned(DeclKindIndex::Last_Decl) + 5),
 
@@ -628,7 +628,7 @@ public:
   }
 
   unsigned getValue() const { return Bits.AlignmentAttr.Value; }
-  
+
   static bool classof(const DeclAttribute *DA) {
     return DA->getKind() == DAK_Alignment;
   }
@@ -651,10 +651,10 @@ public:
                                  bool Implicit)
     : DeclAttribute(DAK_SwiftNativeObjCRuntimeBase, AtLoc, Range, Implicit),
       BaseClassName(BaseClassName) {}
-  
+
   // The base class's name.
   const Identifier BaseClassName;
-  
+
   static bool classof(const DeclAttribute *DA) {
     return DA->getKind() == DAK_SwiftNativeObjCRuntimeBase;
   }
@@ -882,7 +882,7 @@ public:
                           bool implicitName);
 
   /// Create an unnamed Objective-C attribute, i.e., @objc.
-  static ObjCAttr *createUnnamed(ASTContext &Ctx, SourceLoc AtLoc, 
+  static ObjCAttr *createUnnamed(ASTContext &Ctx, SourceLoc AtLoc,
                                  SourceLoc ObjCLoc);
 
   static ObjCAttr *createUnnamedImplicit(ASTContext &Ctx);
@@ -893,8 +893,8 @@ public:
   /// Note that a nullary Objective-C attribute may represent either a
   /// selector for a zero-parameter function or some other Objective-C
   /// entity, such as a class or protocol.
-  static ObjCAttr *createNullary(ASTContext &Ctx, SourceLoc AtLoc, 
-                                 SourceLoc ObjCLoc, SourceLoc LParenLoc, 
+  static ObjCAttr *createNullary(ASTContext &Ctx, SourceLoc AtLoc,
+                                 SourceLoc ObjCLoc, SourceLoc LParenLoc,
                                  SourceLoc NameLoc, Identifier Name,
                                  SourceLoc RParenLoc);
 
@@ -904,13 +904,13 @@ public:
   /// Note that a nullary Objective-C attribute may represent either a
   /// selector for a zero-parameter function or some other Objective-C
   /// entity, such as a class or protocol.
-  static ObjCAttr *createNullary(ASTContext &Ctx, Identifier Name, 
+  static ObjCAttr *createNullary(ASTContext &Ctx, Identifier Name,
                                  bool isNameImplicit);
 
   /// Create a "selector" Objective-C attribute, which has some number
   /// of identifiers followed by colons.
-  static ObjCAttr *createSelector(ASTContext &Ctx, SourceLoc AtLoc, 
-                                  SourceLoc ObjCLoc, SourceLoc LParenLoc, 
+  static ObjCAttr *createSelector(ASTContext &Ctx, SourceLoc AtLoc,
+                                  SourceLoc ObjCLoc, SourceLoc LParenLoc,
                                   ArrayRef<SourceLoc> NameLocs,
                                   ArrayRef<Identifier> Names,
                                   SourceLoc RParenLoc);
@@ -1547,6 +1547,38 @@ public:
   }
 };
 
+/// Describe a symbol was originally defined in another module. For example, given
+/// \code
+/// @_originallyDefinedIn(module: "Original", OSX 10.15) var foo: Int
+/// \endcode
+///
+/// Where variable Foo has originally defined in another module called Original prior to OSX 10.15
+class OriginallyDefinedInAttr: public DeclAttribute {
+public:
+  OriginallyDefinedInAttr(SourceLoc AtLoc, SourceRange Range,
+                          StringRef OriginalModuleName,
+                          PlatformKind Platform,
+                          const llvm::VersionTuple MovedVersion,
+                          bool Implicit)
+    : DeclAttribute(DAK_OriginallyDefinedIn, AtLoc, Range, Implicit),
+      OriginalModuleName(OriginalModuleName),
+      Platform(Platform),
+      MovedVersion(MovedVersion) {}
+
+  // The original module name.
+  const StringRef OriginalModuleName;
+
+  /// The platform of the symbol.
+  const PlatformKind Platform;
+
+  /// Indicates when the symbol was moved here.
+  const llvm::VersionTuple MovedVersion;
+
+  static bool classof(const DeclAttribute *DA) {
+    return DA->getKind() == DAK_OriginallyDefinedIn;
+  }
+};
+
 /// Attribute that asks the compiler to generate a function that returns a
 /// quoted representation of the attributed declaration.
 ///
@@ -1890,7 +1922,7 @@ public:
   size_t numTrailingObjects(OverloadToken<ParsedAutoDiffParameter>) const {
     return NumParsedParameters;
   }
-                                      
+
   bool isLinear() const { return Linear; }
 
   TrailingWhereClause *getWhereClause() const { return WhereClause; }
