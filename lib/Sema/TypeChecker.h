@@ -62,11 +62,11 @@ using ConformanceMap =
 enum class DeclTypeCheckingSemantics {
   /// A normal declaration.
   Normal,
-  
+
   /// The type(of:) declaration, which performs a "dynamic type" operation,
   /// with different behavior for existential and non-existential arguments.
   TypeOf,
-  
+
   /// The withoutActuallyEscaping(_:do:) declaration, which makes a nonescaping
   /// closure temporarily escapable.
   WithoutActuallyEscaping,
@@ -200,7 +200,7 @@ enum class TypeCheckExprFlags {
   /// as part of the expression diagnostics, which is attempting to narrow
   /// down failure location.
   SubExpressionDiagnostics = 0x400,
-  
+
   /// If set, the 'convertType' specified to typeCheckExpression is the opaque
   /// return type of the declaration being checked. The archetype should be
   /// opened into a type variable to provide context to the expression, and
@@ -607,7 +607,7 @@ public:
   static bool isPassThroughTypealias(TypeAliasDecl *typealias,
                                      Type underlyingType,
                                      NominalTypeDecl *nominal);
-  
+
   /// Determine whether one type is a subtype of another.
   ///
   /// \param t1 The potential subtype.
@@ -616,7 +616,7 @@ public:
   ///
   /// \returns true if \c t1 is a subtype of \c t2.
   static bool isSubtypeOf(Type t1, Type t2, DeclContext *dc);
-  
+
   /// Determine whether one type is implicitly convertible to another.
   ///
   /// \param t1 The potential source type of the conversion.
@@ -885,7 +885,7 @@ public:
   /// \returns If successful, a typechecked expression that at runtime will
   /// approximate the given expression. If not successful, nullptr (appropriate
   /// error messages will also be emitted as a side effect).
-  Expr *quoteExpr(Expr *expr, DeclContext *dc);
+  static Expr *quoteExpr(Expr *expr, DeclContext *dc);
 
   /// Compute the type of quoteExpr given the type of expression.
   ///
@@ -898,7 +898,7 @@ public:
   ///
   /// TODO(TF-735): In the future, we may implement more complicated rules
   /// based on something like ExpressibleByQuoteLiteral.
-  Type getTypeOfQuoteExpr(Type exprType, SourceLoc loc);
+  static Type getTypeOfQuoteExpr(Type exprType, SourceLoc loc);
 
   /// Compute the type of #unquote given the type of expression.
   ///
@@ -911,7 +911,7 @@ public:
   ///
   /// TODO(TF-735): In the future, we may implement more complicated rules
   /// based on something like ExpressibleByQuoteLiteral.
-  Type getTypeOfUnquoteExpr(Type exprType, SourceLoc loc);
+  static Type getTypeOfUnquoteExpr(Type exprType, SourceLoc loc);
 
   /// Quote the given typed declaration by creating a snippet of code that at
   /// runtime will approximate the given declaration using the data structures
@@ -927,7 +927,7 @@ public:
   /// \returns If successful, a typechecked expression that at runtime will
   /// approximate the given declaration. If not successful, nullptr (appropriate
   /// error messages will also be emitted as a side effect).
-  Expr *quoteDecl(Decl *decl, DeclContext *dc);
+  static Expr *quoteDecl(Decl *decl, DeclContext *dc);
 
   /// Compute the type of quoteDecl.
   ///
@@ -935,7 +935,7 @@ public:
   ///
   /// TODO(TF-736): In the future, we may want to infer more precise type
   /// based on the shape of the quoted declaration.
-  Type getTypeOfQuoteDecl(ASTContext &ctx, SourceLoc loc);
+  static Type getTypeOfQuoteDecl(ASTContext &ctx, SourceLoc loc);
 
 private:
   static Type typeCheckExpressionImpl(Expr *&expr, DeclContext *dc,
@@ -1102,7 +1102,7 @@ public:
   /// contextual type.
   static void coerceParameterListToType(ParameterList *P, ClosureExpr *CE,
                                         AnyFunctionType *FN);
-  
+
   /// Type-check an initialized variable pattern declaration.
   static bool typeCheckBinding(Pattern *&P, Expr *&Init, DeclContext *DC);
   static bool typeCheckPatternBinding(PatternBindingDecl *PBD, unsigned patternNumber);
@@ -1440,7 +1440,7 @@ public:
                                        bool TreatUsableFromInlineAsPublic);
 
   static Expr *buildDefaultInitializer(Type type);
-  
+
 private:
   static bool diagnoseInlinableDeclRefAccess(SourceLoc loc, const ValueDecl *D,
                                              const DeclContext *DC,
@@ -1559,7 +1559,7 @@ public:
   static void diagnosePotentialOpaqueTypeUnavailability(SourceRange ReferenceRange,
                                            const DeclContext *ReferenceDC,
                                            const UnavailabilityReason &Reason);
-  
+
   /// Emits a diagnostic for a reference to a storage accessor that is
   /// potentially unavailable.
   static void diagnosePotentialAccessorUnavailability(
@@ -1736,14 +1736,14 @@ bool isValidKeyPathDynamicMemberLookup(SubscriptDecl *decl,
 /// (which will produce the original property type). If not specified, defaults to the maximum.
 Type computeWrappedValueType(VarDecl *var, Type backingStorageType,
                              Optional<unsigned> limit = None);
-  
+
 /// Build a call to the init(wrappedValue:) initializers of the property
 /// wrappers, filling in the given \c value as the original value.
 Expr *buildPropertyWrapperInitialValueCall(VarDecl *var,
                                            Type backingStorageType,
                                            Expr *value,
                                            bool ignoreAttributeArgs);
-  
+
 /// Whether an overriding declaration requires the 'override' keyword.
 enum class OverrideRequiresKeyword {
   /// The keyword is never required.
